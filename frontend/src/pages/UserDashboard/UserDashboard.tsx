@@ -73,7 +73,7 @@ export const UserDashboard = () => {
         {/* <pre>{JSON.stringify(msg)}</pre> */}
 
         <div>
-          <h2>Medallas</h2>
+          <h2>Medalla</h2>
           <div className={styles.MedalContainer}>
             <Medal 
               medalName={medals.verified.name} 

@@ -17,6 +17,7 @@ const Medal = ({ medalName, medalScore, verified, userScore }) => {
       </Card.Section>
 
       <Group justify="space-between" mt="md" mb="xs">
+          { verified? '🏆' : '🔜' }
         <Text fw={700}>{ medalName }</Text>
         {
           verified
