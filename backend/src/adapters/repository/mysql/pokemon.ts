@@ -11,12 +11,12 @@ export class PokemonRepo implements PokemonRepoPort {
 
   async createPokemon(p: Pokemon) {
     const script = `
-      INSERT IGNORE INTO pokemon(id, name, power)
-      VALUES (?,?,?)
+      INSERT IGNORE INTO pokemon(name, power)
+      VALUES (?,?)
     `;
 
     const [result] = await this.pool.query(script, [
-      p.id, p.name, p.power,
+      p.name, p.power,
     ])
 
     const { affectedRows, insertId } = result as any;
@@ -30,13 +30,13 @@ export class PokemonRepo implements PokemonRepoPort {
     }
 
     const script = `
-      INSERT IGNORE INTO pokemon(id, name, power)
-      VALUES ${values.map(() => "(?, ?, ?)").join(", ")}
+      INSERT IGNORE INTO pokemon(name, power)
+      VALUES ${values.map(() => "(?, ?)").join(", ")}
     `;
 
     const params: any[] = [];
     values.forEach((item) => {
-      params.push(item.id, item.name, item.power);
+      params.push(item.name, item.power);
     });
 
     const [result] = await this.pool.execute(script, params);
@@ -81,7 +81,7 @@ export class PokemonRepo implements PokemonRepoPort {
 
     const { affectedRows } = result as any;
 
-    return { affectedRows };
+    return affectedRows;
   }
 
   async getPokemonsByName(names: string[]) {
@@ -96,5 +96,46 @@ export class PokemonRepo implements PokemonRepoPort {
     );
 
     return rows as Pokemon[];
+  }
+
+  async updateStatusUserPokemons(userId: number, pokemonIds: number[], status: string) {
+    if (pokemonIds.length == 0) { 
+      return 0;
+    }
+
+    const script = `
+      UPDATE user_pokemon
+      SET status = ?
+      WHERE user_id = ?
+        AND pokemon_id in (${pokemonIds.map(() => '?').join(', ')})
+      ; `
+
+    const [result] = await this.pool.execute(
+      script, [status, userId, ...pokemonIds],
+    );
+
+    const { affectedRows } = result as any;
+
+    return affectedRows;
+  }
+
+  async updateStatusPokemons(pokemonIds: number[], status: string) {
+    if (pokemonIds.length == 0) { 
+      return;
+    }
+
+    const script = `
+      UPDATE pokemon
+      SET status = ?
+      WHERE id in (${pokemonIds.map(() => '?').join(', ')})
+      ; `
+
+    const [result] = await this.pool.execute(
+      script, [status, ...pokemonIds],
+    );
+
+    const { affectedRows } = result as any;
+
+    return affectedRows;
   }
 }

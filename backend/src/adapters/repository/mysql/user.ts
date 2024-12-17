@@ -1,4 +1,5 @@
 import { User } from "@domain/user"
+import { UserPokemon } from "@domain/userPokemon";
 import { UserRepoPort } from "@ports/repository"
 import mysql from 'mysql2/promise';
 
@@ -53,14 +54,18 @@ export class UserRepo implements UserRepoPort {
     return row;
   }
 
-  async getUserPokemons(id: number): Promise<any | null> {
+  async getUserPokemons(id: number): Promise<UserPokemon[]> {
     const script = `
-      SELECT * FROM user_pokemon
-      WHERE user_id = ?;
+        SELECT
+            up.user_id, up.pokemon_id, up.status as capture_status,
+            p.name, p.power, p.status as pokemon_status
+        from user_pokemon up
+        left join pokemon p on up.pokemon_id = p.id
+        where up.user_id = ?;
     `;
     const [rows] = await this.pool.query(script, [id]);
 
-    return rows;
+    return rows as UserPokemon[];
   }
 
   async getAdmin(): Promise<User> {
@@ -73,5 +78,16 @@ export class UserRepo implements UserRepoPort {
     const row = (rows as User[])[0];
 
     return row;
+  }
+
+  async getUsers(): Promise<User[]> {
+    const script = `
+      SELECT * FROM user
+      WHERE role = ?;
+    `;
+
+    const [rows] = await this.pool.query(script, ['us']);
+
+    return rows as User[];
   }
 }

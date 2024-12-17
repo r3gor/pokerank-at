@@ -33,6 +33,10 @@ export class GooglePassport implements PassportStrategyPort {
             username: profile.displayName,
           }
 
+          console.log("passport-google-oauth20", {
+            profile, user, userDB
+          })
+
           return done(null, user);
         }));
   }

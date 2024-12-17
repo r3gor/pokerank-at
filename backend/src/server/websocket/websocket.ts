@@ -1,15 +1,26 @@
 import { JWTServicePort, UserServicePort } from "@ports/services";
 import { Server, Socket } from "socket.io";
-import { Pokemon, User } from "./domain";
+import { Pokemon, User } from "../../domain";
+import UserWSController from "./controllers/user";
+import { AdminWSController } from "./controllers/admin";
 
 export class WebSocketApp {
   constructor(
     private userService: UserServicePort,
     private jwtService: JWTServicePort,
   ) {
+
+
   };
 
   setup(io: Server) {
+
+    const userWSController = new UserWSController(
+      this.userService, io,
+    );
+    const adminWSController = new AdminWSController(
+      this.userService, io,
+    );
 
     // Middleware
     io.use(async (socket: Socket, next) => {
@@ -18,7 +29,6 @@ export class WebSocketApp {
       // FIXME: temporal
       if (token == "ADMINTOKEN") {
         const userDB = await this.userService.getAdmin() as User;
-        console.log("admin:", userDB);
         socket.data.user = userDB;
         socket.join('admins');
         next();
@@ -47,6 +57,7 @@ export class WebSocketApp {
         socket.join('admins');
       } else {
         socket.join('users');
+        socket.join(`user-${userDB.id}`);
       }
 
       next();
@@ -54,37 +65,14 @@ export class WebSocketApp {
 
     io.on('connection', (socket: Socket) => {
       const user = socket.data.user as User;
-      console.log(`SOCKET Usuario conectado: ${user.username} (${user.role})`);
+      console.log(`[WS] Usuario conectado: ${user.username} (${user.role})`);
 
-      socket.on('addpokemons', (payload: any) => {
-        console.log('pokemones', payload);
-
-        const pokemons: Pokemon[] = payload.pokemons.map((p: any) => ({
-          id: p.pokemon_id,
-          name: p.pokemon_name,
-          power: p.pokemon_power,
-        }))
-
-        this.userService.AddPokemons(user.id!, pokemons, 1);
-
-
-        io.to('admins').emit('pokemonssubidos-admin', {
-          message: `${user.username} ha subido un nuevo Pokémon`,
-          pokemon: payload,
-        });
-      })
-
-      socket.on('addpokemon', (pokemonData: any[]) => {
-        console.log(`${user.username} ha subido pokemones`);
-        console.log('pokemon:', pokemonData);
-
-
-        // Notificar a los admins
-        io.to('admins').emit('notificar admin', {
-          message: `${user.username} ha subido un nuevo Pokémon`,
-          pokemon: pokemonData
-        });
-      });
+      if (user.role == "us") {
+        userWSController.registerEvents(socket);
+      }
+      if (user.role == "ad") {
+        adminWSController.registerEvents(socket);
+      }
 
       socket.on('disconnect', () => {
         console.log(`Usuario desconectado: ${user.username}`);

@@ -58,10 +58,11 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
       setAuthToken(token);
 
       if (user.user.role == 'ad') {
-        navigate('/admin');
+        navigate('/admin/dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/user/dashboard');
       }
+
     } catch (err) {
       console.error(err);
       logout();

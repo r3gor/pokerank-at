@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { JWTServicePort, UserServicePort } from "../ports/services";
-import { ControllerPort } from "../ports/controler";
-import { PassportStrategyPort } from "../ports/passport";
+import { JWTServicePort, UserServicePort } from "@ports/services";
+import { ControllerPort } from "@ports/controler";
+import { PassportStrategyPort } from "@ports/passport";
 import { User } from "@domain/user";
-import cfg from "../config/config";
+import cfg from "../../../config/config";
 
 export class AuthController implements ControllerPort {
   constructor(
@@ -22,6 +22,9 @@ export class AuthController implements ControllerPort {
             return;
           }
           const user = req.user as User;
+          console.log("ON CALLBACK AUTH", {
+            user, requser: req.user
+          })
           if (!user.id) {
             const userId = await this.userService.createUser(user);
             if (userId) user.id = userId;

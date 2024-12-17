@@ -1,17 +1,21 @@
-import cfg from "./config/config";
+
+import { GooglePassport } from '../adapters/passport/google';
+import { PokemonRepo } from "../adapters/repository/mysql/pokemon";
+import { UserRepo } from "../adapters/repository/mysql/user";
+import { MedalRepo } from "../adapters/repository/mysql/medal";
+import { JWTService } from "../services/jwt";
+import { UserService } from "../services/user";
+import { createServer } from "http";
+import { HttpApp } from "./http/http";
+import { WebSocketApp } from "./websocket/websocket";
+import cfg from "../config/config";
+
 import express from "express";
 import socketio from "socket.io";
 import mysql from 'mysql2/promise';
-
-import { PokemonRepo } from "./adapters/repository/mysql/pokemon";
-import { UserRepo } from "./adapters/repository/mysql/user";
-import { JWTService } from "./services/jwt";
-import { UserService } from "./services/user";
-import { HttpApp } from "./http";
-import { createServer } from "http";
-import { WebSocketApp } from "./websocket";
 import { Server  } from "http"
-import { MedalRepo } from "./adapters/repository/mysql/medal";
+
+GooglePassport;
 
 export class ServerApp {
   private server: Server

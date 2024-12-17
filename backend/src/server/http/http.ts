@@ -1,11 +1,12 @@
 import express, { Router } from 'express';
+import { GooglePassport } from '../../adapters/passport/google';
+import { JWTServicePort, UserServicePort } from '@ports/services';
+import cfg from '../../config/config';
 import { AuthController } from './controllers/auth';
-import { GooglePassport } from './adapters/passport/google';
-import cfg from './config/config';
-import { JWTServicePort, UserServicePort } from './ports/services';
 import UserController from './controllers/user';
-import { tokenValidator } from './middleware/tokenValidator';
+import { tokenValidator } from '../../middleware/tokenValidator';
 import cors from 'cors';
+import { AdminController } from './controllers/admin';
 
 export class HttpApp {
   private router: express.IRouter;
@@ -40,13 +41,19 @@ export class HttpApp {
       tokenValidatorMiddleware,
     )
 
+    const adminController = new AdminController(
+      this.userService,
+      tokenValidatorMiddleware,
+    )
+
     authController.registerRoutes(this.router);
     userController.registerRoutes(this.router);
+    adminController.registerRoutes(this.router);
   }
 
   setup(app: express.Express) {
     app.use(cors({
-      origin: 'http://localhost:3000',
+      origin: 'http://localhost:3000', // FIXME: hardcode
       credentials: true,
     }));
     app.use(express.json())

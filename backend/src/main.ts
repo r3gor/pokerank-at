@@ -1,4 +1,4 @@
-import { ServerApp } from "./server";
+import { ServerApp } from "./server/server";
 
 function main () {
 

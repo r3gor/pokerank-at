@@ -1,10 +1,8 @@
 import { ControllerPort } from "@ports/controler";
 import { MiddlewarePort } from "@ports/middleware";
 import { UserServicePort } from "@ports/services";
-import { Router, Request, Response, NextFunction } from "express";
-
-
 import { User as DomainUser, User } from '@domain/user';
+import { Router, Request, Response, NextFunction } from "express";
 
 declare global {
   namespace Express {
@@ -21,13 +19,14 @@ export default class UserController implements ControllerPort {
 
   registerRoutes = (router: Router): void => {
     router.get('/user', this.tokenValidatorMiddleware.handle, this.getUser);
+    router.get('/user/dashboard', this.tokenValidatorMiddleware.handle, this.getUserDashboard);
   }
 
   getUser = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.id;
     const user = await this.userService.getUser(userId!) as User; // FIXME: validate
     const medals = await this.userService.getMedalScore(userId!);
-    delete user.hashed_password;
+    // delete user.hashed_password;
     res.json({ user, medals });
   }
   
@@ -36,7 +35,13 @@ export default class UserController implements ControllerPort {
     const provider = req.user?.provider;
 
     const user = await this.userService.getUserByIdProvider(userId!, provider!) as User; // FIXME: validate
-    delete user.hashed_password;
+    // delete user.hashed_password;
     res.json(user);
   }
+
+  getUserDashboard = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+    const dashboard = await this.userService.getUserDashboard(userId!);
+    res.json(dashboard);
+  };
 }
